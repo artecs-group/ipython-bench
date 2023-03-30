@@ -18,6 +18,21 @@ To run Intel Python and SYCL benchmarks you will need to set the oneAPI variable
 ```bash
 $ source /opt/intel/oneapi/setvars.sh
 ```
+### 2.1 Python dependencies
+The best way to install python dependencies is by using a virtual environment, to do so:
+
+```bash
+$ sudo apt install virtualenv
+$ virtualenv -p python3 venv
+$ source venv/bin/activate
+$ pip install numpy
+```
+
+To deactivate virtualenv, do by:
+
+```bash
+$ deactivate
+```
 
 ## 3. Running
 ### 3.1 Intel Python
