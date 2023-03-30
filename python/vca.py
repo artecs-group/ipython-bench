@@ -190,7 +190,7 @@ if __name__ == '__main__':
     print("Done.")
     print("Starting VCA algorithm...")
     start = time.time()
-    Ae, indice, Yp = vca(cup, target, verbose = True, snr_input = 0.1)
+    Ae, indice, Yp = vca(cup, target, verbose=True, snr_input=1)
     end = time.time()
     print(f"VCA took {end-start}s")
 
