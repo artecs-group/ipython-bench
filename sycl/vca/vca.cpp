@@ -114,7 +114,7 @@ void convertToFloat(unsigned int lines_samples, int bands, std::ifstream& inFile
 /*
  * Author: Jorge Sevilla Cedillo & Youssef El Faqir El Rhazoui
  * */
-int loadImage(const std::string& filename, double* image, int lines, int samples, 
+int loadImage(const std::string& filename, float* image, int lines, int samples, 
     int bands, int dataType, std::string* interleave) {
     
     float *type_float;
@@ -176,8 +176,8 @@ int loadImage(const std::string& filename, double* image, int lines, int samples
  * Calculates Moore-Penrose pseudoinverse of a square matrix
  * pinv(A) = V * S^-1 * U
  **/
-inline int pinv(sycl::queue q, double* A, int n, double* S, double* U, double* VT, double* work, int lwork) {
-    constexpr double alpha{1.0f}, beta{0.0f}, EPSILON{1.0e-9};
+inline int pinv(sycl::queue q, float* A, int n, float* S, float* U, float* VT, float* work, int lwork) {
+    constexpr float alpha{1.0f}, beta{0.0f}, EPSILON{1.0e-9};
     // A = S U Vt
     oneapi::mkl::lapack::gesvd(q, oneapi::mkl::jobsvd::somevec, oneapi::mkl::jobsvd::somevec, n, n, A, n, S, U, n, VT, n, work, lwork);
     q.wait();
@@ -201,12 +201,12 @@ inline int pinv(sycl::queue q, double* A, int n, double* S, double* U, double* V
 }
 
 
-void vca(int lines, int samples, int bands, int targetEndmembers, float SNR, double* image) {
+void vca(int lines, int samples, int bands, int targetEndmembers, float SNR, float* image) {
 	std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
     float tVca{0.f};
     int N{lines*samples};
-	double inv_N{1/static_cast<double>(N)};
-	double alpha{1.0f}, beta{0.f}, powerx{0}, powery{0};
+	float inv_N{1/static_cast<float>(N)};
+	float alpha{1.0f}, beta{0.f}, powerx{0}, powery{0};
     const double SNR_th{15 + 10 * std::log10(targetEndmembers)};
 
 	std::uint64_t seed{0};
@@ -217,53 +217,53 @@ void vca(int lines, int samples, int bands, int targetEndmembers, float SNR, dou
             << std::endl << std::endl;
 
 	oneapi::mkl::rng::mrg32k3a engine(queue, seed);
-	oneapi::mkl::rng::gaussian<double, oneapi::mkl::rng::gaussian_method::box_muller2> distr(0.0, 1.0);
+	oneapi::mkl::rng::gaussian<float, oneapi::mkl::rng::gaussian_method::box_muller2> distr(0.0, 1.0);
 
-	double* x_p        = sycl::malloc_device<double>(N * targetEndmembers, queue);
-	double* y          = sycl::malloc_device<double>(N * targetEndmembers, queue);
-	double* dImage     = sycl::malloc_device<double>(bands * N, queue);
-	double* meanImage  = sycl::malloc_device<double>(bands * N, queue);
-	double* mean       = sycl::malloc_device<double>(bands, queue);
-	double* svdMat     = sycl::malloc_device<double>(bands * bands, queue);
-	double* D          = sycl::malloc_device<double>(bands, queue);//eigenvalues
-	double* U          = sycl::malloc_device<double>(bands * bands, queue);//eigenvectors
-	double* VT         = sycl::malloc_device<double>(bands * bands, queue);//eigenvectors
-	double* endmembers = sycl::malloc_shared<double>(targetEndmembers * bands, queue);
-	double* Rp         = sycl::malloc_device<double>(bands * N, queue);
-	double* u          = sycl::malloc_device<double>(targetEndmembers, queue);
-	double* sumxu      = sycl::malloc_device<double>(N, queue);
-	double* w          = sycl::malloc_device<double>(targetEndmembers, queue);
-	double* A          = sycl::malloc_device<double>(targetEndmembers * targetEndmembers, queue);
-	double* A_copy     = sycl::malloc_device<double>(targetEndmembers * targetEndmembers, queue);
-	double* aux        = sycl::malloc_device<double>(targetEndmembers * targetEndmembers, queue);
-	double* f          = sycl::malloc_device<double>(targetEndmembers, queue);
-	double* pinvS	   = sycl::malloc_shared<double>(targetEndmembers, queue);
-	double* pinvU	   = sycl::malloc_device<double>(targetEndmembers * targetEndmembers, queue);
-	double* pinvVT	   = sycl::malloc_device<double>(targetEndmembers * targetEndmembers, queue);
-	double* redVars    = sycl::malloc_shared<double>(3, queue);
+	float* x_p        = sycl::malloc_device<float>(N * targetEndmembers, queue);
+	float* y          = sycl::malloc_device<float>(N * targetEndmembers, queue);
+	float* dImage     = sycl::malloc_device<float>(bands * N, queue);
+	float* meanImage  = sycl::malloc_device<float>(bands * N, queue);
+	float* mean       = sycl::malloc_device<float>(bands, queue);
+	float* svdMat     = sycl::malloc_device<float>(bands * bands, queue);
+	float* D          = sycl::malloc_device<float>(bands, queue);//eigenvalues
+	float* U          = sycl::malloc_device<float>(bands * bands, queue);//eigenvectors
+	float* VT         = sycl::malloc_device<float>(bands * bands, queue);//eigenvectors
+	float* endmembers = sycl::malloc_shared<float>(targetEndmembers * bands, queue);
+	float* Rp         = sycl::malloc_device<float>(bands * N, queue);
+	float* u          = sycl::malloc_device<float>(targetEndmembers, queue);
+	float* sumxu      = sycl::malloc_device<float>(N, queue);
+	float* w          = sycl::malloc_device<float>(targetEndmembers, queue);
+	float* A          = sycl::malloc_device<float>(targetEndmembers * targetEndmembers, queue);
+	float* A_copy     = sycl::malloc_device<float>(targetEndmembers * targetEndmembers, queue);
+	float* aux        = sycl::malloc_device<float>(targetEndmembers * targetEndmembers, queue);
+	float* f          = sycl::malloc_device<float>(targetEndmembers, queue);
+	float* pinvS	   = sycl::malloc_shared<float>(targetEndmembers, queue);
+	float* pinvU	   = sycl::malloc_device<float>(targetEndmembers * targetEndmembers, queue);
+	float* pinvVT	   = sycl::malloc_device<float>(targetEndmembers * targetEndmembers, queue);
+	float* redVars    = sycl::malloc_shared<float>(3, queue);
 	int64_t* imax      = sycl::malloc_device<int64_t>(1, queue);
 
-    int64_t scrach_size = oneapi::mkl::lapack::gesvd_scratchpad_size<double>(
+    int64_t scrach_size = oneapi::mkl::lapack::gesvd_scratchpad_size<float>(
                     queue, 
                     oneapi::mkl::jobsvd::somevec, 
                     oneapi::mkl::jobsvd::novec, 
                     bands, bands, bands, bands, bands
                 );
-	int64_t pinv_size = oneapi::mkl::lapack::gesvd_scratchpad_size<double>(
+	int64_t pinv_size = oneapi::mkl::lapack::gesvd_scratchpad_size<float>(
 					queue, 
 					oneapi::mkl::jobsvd::somevec, 
 					oneapi::mkl::jobsvd::somevec, 
 					targetEndmembers, targetEndmembers, targetEndmembers, targetEndmembers, targetEndmembers
 				);
     queue.wait();
-    double* gesvd_scratchpad = sycl::malloc_device<double>(scrach_size, queue);
-	double* pinv_scratchpad  = sycl::malloc_device<double>(pinv_size, queue);
+    float* gesvd_scratchpad = sycl::malloc_device<float>(scrach_size, queue);
+	float* pinv_scratchpad  = sycl::malloc_device<float>(pinv_size, queue);
 
-	queue.memset(mean, 0, bands*sizeof(double));
-	queue.memset(u, 0, targetEndmembers*sizeof(double));
-	queue.memset(sumxu, 0, N*sizeof(double));
-	queue.memset(A, 0, targetEndmembers * targetEndmembers*sizeof(double));
-	queue.memset(redVars, 0, 3*sizeof(double));
+	queue.memset(mean, 0, bands*sizeof(float));
+	queue.memset(u, 0, targetEndmembers*sizeof(float));
+	queue.memset(sumxu, 0, N*sizeof(float));
+	queue.memset(A, 0, targetEndmembers * targetEndmembers*sizeof(float));
+	queue.memset(redVars, 0, 3*sizeof(float));
 
 	queue.single_task<class vca_10>([=]() {
 		A[(targetEndmembers-1) * targetEndmembers] = 1;
@@ -274,7 +274,7 @@ void vca(int lines, int samples, int bands, int targetEndmembers, float SNR, dou
     /***********
 	 * SNR estimation
 	 ***********/
-    queue.memcpy(dImage, image, sizeof(double)*lines*samples*bands);
+    queue.memcpy(dImage, image, sizeof(float)*lines*samples*bands);
     queue.wait();
 
 	for (size_t i = 0; i < bands; i++)
@@ -406,7 +406,7 @@ void vca(int lines, int samples, int bands, int targetEndmembers, float SNR, dou
 	for(int i = 0; i < targetEndmembers; i++) {
 		oneapi::mkl::rng::generate(distr, engine, targetEndmembers, w);
 
-		queue.memcpy(A_copy, A, sizeof(double)*targetEndmembers*targetEndmembers);
+		queue.memcpy(A_copy, A, sizeof(float)*targetEndmembers*targetEndmembers);
     	queue.wait();
 
 		pinv(queue, A_copy, targetEndmembers, pinvS, pinvU, pinvVT, pinv_scratchpad, pinv_size);
@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-    double* image = new double[lines * samples * bands]();
+    float* image = new float[lines * samples * bands]();
     filename = argv[1];
     error = loadImage(filename, image, lines, samples, bands, dataType, &interleave);
     if (error != 0) {

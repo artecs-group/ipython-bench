@@ -197,7 +197,7 @@ if __name__ == '__main__':
         # Store the data in a list
         cup_vec = [float(i) for i in float_data]
 
-    cup = np.asarray(cup_vec, dtype=np.float64).reshape(bands, samples*lines)
+    cup = np.asarray(cup_vec, dtype=np.float32).reshape(bands, samples*lines)
     print("Done.")
     d = dpctl.select_default_device()
     d.print_device_info()
