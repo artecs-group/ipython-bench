@@ -1,7 +1,3 @@
-// Compile icpx -o matrix_mult matrix_mult.cpp -O3 -fsycl -DMKL_ILP64  -I"${MKLROOT}/include"  -fsycl  -L${MKLROOT}/lib/intel64 -lmkl_sycl -lmkl_intel_ilp64 -lmkl_tbb_thread -lmkl_core -lsycl -lOpenCL -lpthread -lm -ldl
-// Execute SYCL_DEVICE_FILTER=cpu ./matrix_mult 4096 4096 4096
-
-
 #include <CL/sycl.hpp>
 #include "oneapi/mkl.hpp"
 #include <iostream>
