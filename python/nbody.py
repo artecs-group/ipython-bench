@@ -1,5 +1,4 @@
 import sys
-import dpctl
 import numpy as np
 import time
 
@@ -20,7 +19,7 @@ def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
         ax = np.sum(g_mass * dx * invDist3)
         ay = np.sum(g_mass * dy * invDist3)
         az = np.sum(g_mass * dz * invDist3)
-                
+
         velx[i] = dt*ax
         vely[i] = dt*ay
         velz[i] = dt*az
@@ -36,7 +35,7 @@ def solutionPos( x, y, z ):
     return(pos_global)
 
 def main(argv):
-    if len(argv)>0 and len(argv)<4:
+    if len(argv)==3:
         N     = int(argv[0])
         iters = int(argv[1])
         dtypefp = argv[2]
@@ -71,7 +70,7 @@ def main(argv):
     t1 = time.time()
     totalTime = t1-t0
 
-    print("{} Bodies with {}iterations. {:.2f} Millions Interactions/second".format(N, iters, 1e-6*iters*N*N/totalTime))
+    print("{} Bodies with {} iterations. {:.2f} Millions Interactions/second".format(N, iters, 1e-6*iters*N*N/totalTime))
     print("nbody took {:4.2f} s.".format(totalTime))
 
     print('pos={}'.format(solutionPos(posx, posy, posz)))

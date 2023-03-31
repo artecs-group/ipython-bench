@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 def main(argv):
-    if len(argv)>0 and len(argv)<3:
+    if len(argv)==2:
         N = int(argv[0])
         dtypefp = argv[1]
         if dtypefp=='float32':
@@ -15,6 +15,7 @@ def main(argv):
     else: 
         sys.exit("Not parameters were found: python calc_pi.py <N> <float32/64>")
 
+    np.random.seed(17) # set the random number generator seed
     x = np.random.uniform(-1.0, 1.0, N).astype(npfloat)
     y = np.random.uniform(-1.0, 1.0, N).astype(npfloat)
 

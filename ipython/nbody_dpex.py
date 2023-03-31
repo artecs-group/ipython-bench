@@ -21,10 +21,16 @@ def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
         invDist3 = invDist * invDist * invDist
         
         g_mass = G * mass[j]
+        if i==j:
+            g_mass = 0 # To invalidate itself
     
         ax = ax + g_mass * dx * invDist3
         ay = ay + g_mass * dy * invDist3
         az = az + g_mass * dz * invDist3
+
+    velx[i] = dt*ax
+    vely[i] = dt*ay
+    velz[i] = dt*az
    
 	
 def integrate( x, y, z, velx, vely, velz, dt ):
@@ -38,7 +44,7 @@ def solutionPos( x, y, z ):
     return(pos_global)
 
 def main(argv):
-    if len(argv)>0 and len(argv)<4:
+    if len(argv)==3:
         N     = int(argv[0])
         iters = int(argv[1])
         dtypefp = argv[2]
@@ -53,7 +59,7 @@ def main(argv):
 
     d = dpctl.select_default_device()
     d.print_device_info()
-    
+
     np.random.seed(17)                            # set the random number generator seed
     softSqred = npfloat(0.001)                    # softening length
     G         = npfloat(6.674e-11)                # Newton's Gravitational Constant
@@ -76,7 +82,7 @@ def main(argv):
     t1 = time.time()
     totalTime = t1-t0
 
-    print("{} Bodies with {}iterations. {:.2f} Millions Interactions/second".format(N, iters, 1e-6*iters*N*N/totalTime))
+    print("{} Bodies with {} iterations. {:.2f} Millions Interactions/second".format(N, iters, 1e-6*iters*N*N/totalTime))
     print("nbody took {:4.2f} s.".format(totalTime))
 
     print('pos={}'.format(solutionPos(posx, posy, posz)))

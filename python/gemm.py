@@ -1,10 +1,9 @@
 import sys
-import dpctl
 import numpy as np
 import time
 
 def main(argv):
-    if len(argv)>0 and len(argv)<5:
+    if len(argv)==4:
         N = int(argv[0])
         M = int(argv[1])
         K = int(argv[2])

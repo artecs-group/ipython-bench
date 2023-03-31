@@ -2,10 +2,11 @@ import sys
 import dpctl
 import dpnp as np
 import time
+from numba import prange
 
 def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
 
-    for i in range(len(x)):
+    for i in prange(len(x)):
         dx = x[i] - x
         dy = y[i] - y
         dz = z[i] - z
@@ -20,7 +21,7 @@ def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
         ax = np.sum(g_mass * dx * invDist3)
         ay = np.sum(g_mass * dy * invDist3)
         az = np.sum(g_mass * dz * invDist3)
-
+                
         velx[i] = dt*ax
         vely[i] = dt*ay
         velz[i] = dt*az

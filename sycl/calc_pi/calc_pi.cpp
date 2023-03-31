@@ -117,5 +117,8 @@ int main(int argc, char**argv) {
 
 	std::cout << std::endl << "N = "<< N << "\tpi = " << my_pi << std::endl;
 	std::cout << std::endl << "calc_pi took = " << elapsed.count() * 1e-9 << " (s)" << std::endl << std::endl;
+	
+	free(x);
+	free(y);
 }
 
