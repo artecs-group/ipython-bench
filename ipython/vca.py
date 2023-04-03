@@ -90,7 +90,7 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
     #############################################
 
     if snr_input == 0:
-        y_m = np.mean(Y, axis=1, dtype=np.float32)
+        y_m = np.mean(Y, axis=1)
         Y_o = (Y.T - y_m).transpose()           # data with zero-mean
         #splin.lapack.dgesvd
         Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=np.float32))[0][:,:R]  # computes the R-projection matrix 
@@ -120,7 +120,7 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
         if snr_input  == 0: # it means that the projection is already computed
             Ud = Ud[:,:d]
         else:
-            y_m = np.mean(Y, axis=1, dtype=np.float32)
+            y_m = np.mean(Y, axis=1)
             Y_o = (Y.T - y_m).transpose()  # data with zero-mean 
                 
             Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=np.float32))[0][:,:d]  # computes the p-projection matrix 
@@ -140,7 +140,7 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
         x_p = np.matmul(Ud.T, Y)[:d,:]
         Yp = np.matmul(Ud, x_p)      # again in dimension L (note that x_p has no null mean)
         x = np.matmul(Ud.T, Y)
-        u = np.mean(x, axis=1, dtype=np.float32)        #equivalent to  u = Ud.T * r_m
+        u = np.mean(x, axis=1)        #equivalent to  u = Ud.T * r_m
         y = x / np.matmul(u.T, x)
 
 
