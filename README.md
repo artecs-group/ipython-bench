@@ -43,13 +43,13 @@ $ SYCL_DEVICE_FILTER=gpu python3 ipython/vca.py data/Cuprite 19
 ```
 
 ### 3.2 SYCL
-Moving to SYCL, you have to previously build each benchmark, e.g.:
+Moving to SYCL, you have to previously build the benchmarks, e.g.:
 
 ```c++
-$ cd sycl/vca
+$ cd sycl
 $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-$ SYCL_DEVICE_FILTER=cpu ./vca.exe ../../../data/Cuprite 19 1
+$ SYCL_DEVICE_FILTER=cpu vca/vca.exe ../../data/Cuprite 19 1
 ```
