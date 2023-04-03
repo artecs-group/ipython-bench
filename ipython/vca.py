@@ -13,13 +13,13 @@ import dpctl
 #############################################
 
 def pinv(A: np.ndarray) -> np.ndarray:
-    rcond = np.asarray(1e-15)
+    rcond = np.asarray(1.1920929e-07, dtype=np.float32)
     u, s, vt = np.linalg.svd(A, full_matrices=False)
 
     # discard small singular values
     cutoff = rcond[..., np.newaxis] * np.amax(s, axis=-1)
     large = s > cutoff
-    s = np.divide(1, s, where=large, out=s)
+    s = np.divide(1, s, where=large, out=s, dtype=np.float32)
     s = np.where(large, s, 0)
 
     res = np.matmul(vt.T, np.multiply(s[..., np.newaxis], u.T))
@@ -90,10 +90,10 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
     #############################################
 
     if snr_input == 0:
-        y_m = np.mean(Y, axis=1)
+        y_m = np.mean(Y, axis=1, dtype=np.float32)
         Y_o = (Y.T - y_m).transpose()           # data with zero-mean
         #splin.lapack.dgesvd
-        Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N))[0][:,:R]  # computes the R-projection matrix 
+        Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=np.float32))[0][:,:R]  # computes the R-projection matrix 
         x_p = np.matmul(Ud.T, Y_o)                 # project the zero-mean data onto p-subspace
 
         SNR = estimate_snr(Y, y_m, x_p)
@@ -120,27 +120,27 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
         if snr_input  == 0: # it means that the projection is already computed
             Ud = Ud[:,:d]
         else:
-            y_m = np.mean(Y, axis=1)
+            y_m = np.mean(Y, axis=1, dtype=np.float32)
             Y_o = (Y.T - y_m).transpose()  # data with zero-mean 
                 
-            Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N))[0][:,:d]  # computes the p-projection matrix 
+            Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=np.float32))[0][:,:d]  # computes the p-projection matrix 
             x_p =  np.matmul(Ud.T, Y_o)                 # project the zeros mean data onto p-subspace
 
             Yp =  (np.matmul(Ud, x_p[:d,:]).transpose() + y_m).transpose()     # again in dimension L
                     
             x = x_p[:d,:] #  x_p =  Ud.T * Y_o is on a R-dim subspace
-            c = math.sqrt(np.amax(np.sum(np.square(x), axis=1)))
-            y = np.vstack(( x, c * np.ones((1,N)) ))
+            c = math.sqrt(np.amax(np.sum(np.square(x), axis=1, dtype=np.float32)))
+            y = np.vstack(( x, c * np.ones((1, N), dtype=np.float32)))
     else:
         if verbose:
             print("... Select the projective proj.")
                 
         d = R
-        Ud  = np.linalg.svd(np.divide(np.matmul(Y, Y.T), N))[0][:,:d] # computes the p-projection matrix 
+        Ud  = np.linalg.svd(np.divide(np.matmul(Y, Y.T), N, dtype=np.float32))[0][:,:d] # computes the p-projection matrix 
         x_p = np.matmul(Ud.T, Y)[:d,:]
         Yp = np.matmul(Ud, x_p)      # again in dimension L (note that x_p has no null mean)
         x = np.matmul(Ud.T, Y)
-        u = np.mean(x, axis=1)        #equivalent to  u = Ud.T * r_m
+        u = np.mean(x, axis=1, dtype=np.float32)        #equivalent to  u = Ud.T * r_m
         y = x / np.matmul(u.T, x)
 
 
@@ -149,14 +149,14 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
     #############################################
 
     indices = np.zeros((R), dtype=int)
-    A = np.zeros((R, R))
+    A = np.zeros((R, R), dtype=np.float32)
     A[-1,0] = 1
 
     for i in range(R):
-        w = np.random.rand(R, 1)
-        f = w - np.matmul(A, np.matmul(pinv(A), w))
-        f = f / np.linalg.norm(f)
-            
+        w = np.random.rand(R, 1).astype(np.float32)
+        f = w - np.matmul(np.matmul(A, pinv(A)), w)
+        f = np.divide(f, np.linalg.norm(f), dtype=np.float32)
+
         v = np.matmul(f.T, y)
 
         indices[i] = np.argmax(np.absolute(v))
@@ -208,13 +208,13 @@ if __name__ == '__main__':
     print(f"VCA took {end-start}s")
 
     print("Writing results...")
-    with open('End-Cupriteb_python-02.txt', 'w') as f:
+    with open('data/End-Cupriteb_python-02.txt', 'w') as f:
         for i in range(target):
             f.write(f"==={i}")
             for j in range(bands):
                 f.write(f"{Ae[j, i]}")
     
-    # with open('python_endmem.bin', 'wb') as f:
+    # with open('data/python_endmem.bin', 'wb') as f:
     #     f.write(Ae.tobytes())
     print("Done.")
             
