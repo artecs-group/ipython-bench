@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-import os
 import struct
 import time
 import math
@@ -32,7 +31,7 @@ def estimate_snr(Y: np.ndarray, r_m: np.ndarray, x: np.ndarray) -> float:
 
     P_y     = np.sum(np.square(Y)) / float(N)
     P_x     = np.sum(np.square(x)) / float(N) + np.sum(np.square(r_m))
-    snr_est = 10 * math.log10((P_x - p / L * P_y) / (P_y - P_x))
+    snr_est = 10 * math.log10((P_x - p / L * P_y) / np.absolute(P_y - P_x))
     return snr_est
 
 
