@@ -23,7 +23,7 @@ def estimate_snr(Y, r_m, x):
 
 
 
-def vca(Y, R, verbose = True, snr_input = 0):
+def vca(Y, R, verbose=True, snr_input=0, dtype=np.float32):
 # Vertex Component Analysis
 #
 # Ae, indice, Yp = vca(Y,R,verbose = True,snr_input = 0)
@@ -80,7 +80,7 @@ def vca(Y, R, verbose = True, snr_input = 0):
     y_m = np.mean(Y,axis=1)
     Y_o = (Y.T - y_m).transpose()           # data with zero-mean
     #splin.lapack.dgesvd
-    Ud  = np.linalg.svd(np.matmul(Y_o,Y_o.T)/float(N))[0][:,:R]  # computes the R-projection matrix 
+    Ud  = np.linalg.svd(np.divide(np.matmul(Y_o,Y_o.T), N, dtype=dtype))[0][:,:R]  # computes the R-projection matrix 
     x_p = np.matmul(Ud.T, Y_o)                 # project the zero-mean data onto p-subspace
 
     SNR = estimate_snr(Y,y_m,x_p)
@@ -110,20 +110,20 @@ def vca(Y, R, verbose = True, snr_input = 0):
         y_m = np.mean(Y,axis=1)
         Y_o = (Y.T - y_m).transpose()  # data with zero-mean 
          
-        Ud  = np.linalg.svd(np.matmul(Y_o,Y_o.T)/float(N))[0][:,:d]  # computes the p-projection matrix 
+        Ud  = np.linalg.svd(np.divide(np.matmul(Y_o,Y_o.T), N, dtype=dtype))[0][:,:d]  # computes the p-projection matrix 
         x_p = np.matmul(Ud.T,Y_o)                 # project thezeros mean data onto p-subspace
                 
       Yp =  (np.matmul(Ud,x_p[:d,:]).transpose() + y_m).transpose()      # again in dimension L
                 
       x = x_p[:d,:] #  x_p =  Ud.T * Y_o is on a R-dim subspace
-      c = math.sqrt(np.amax(np.sum(np.square(x),axis=0)))
-      y = np.vstack(( x, c*np.ones((1,N)) ))
+      c = math.sqrt(np.amax(np.sum(np.square(x),axis=0, dtype=dtype)))
+      y = np.vstack(( x, c*np.ones((1,N), dtype=dtype) ))
   else:
     if verbose:
       print("... Select the projective proj.")
              
     d = R
-    Ud  = np.linalg.svd(np.matmul(Y,Y.T)/float(N))[0][:,:d] # computes the p-projection matrix 
+    Ud  = np.linalg.svd(np.divide(np.matmul(Y,Y.T), N, dtype=dtype))[0][:,:d] # computes the p-projection matrix 
                 
     x_p = np.matmul(Ud.T,Y)
     Yp =  np.matmul(Ud,x_p[:d,:])      # again in dimension L (note that x_p has no null mean)
@@ -138,33 +138,39 @@ def vca(Y, R, verbose = True, snr_input = 0):
   #############################################
 
   indice = np.zeros((R),dtype=int)
-  A = np.zeros((R,R))
+  A = np.zeros((R,R), dtype=dtype)
   A[-1,0] = 1
 
   for i in range(R):
-    w = np.random.rand(R,1)
-    f = w - np.matmul(A,np.matmul(np.linalg.pinv(A),w))
-    f = f / np.linalg.norm(f)
+    w = np.random.rand(R,1).astype(dtype)
+    f = w - np.matmul(np.matmul(A, np.linalg.pinv(A)), w)
+    f = np.divide(f, np.linalg.norm(f), dtype=dtype)
       
     v = np.matmul(f.T,y)
 
     indice[i] = np.argmax(np.absolute(v))
     #A[:,i] = y[:,indice[i]]        # same as x(:,indice(i))
 
-  Ae = Yp[:,indice]
+  Ae = np.take(Yp, indice, axis=1)
 
   return Ae,indice,Yp
 
 
 if __name__ == '__main__':
-    if not len(sys.argv) == 3:
-        sys.exit("Not parameters were found: python vca.py <path to image file, e.g.: Cuprite> <target endmembers, e.g.: 19>")
+    if not len(sys.argv) == 5:
+        sys.exit("Not parameters were found: python vca.py <path to image file, e.g.: Cuprite> <target endmembers, e.g.: 19> <SNR, e.g.: 0> <float32/64>")
 
     path:str = sys.argv[1]
     samples:int = 0
     lines:int = 0
     bands:int = 0
     target:int = int(sys.argv[2])
+    snr:float = float(sys.argv[3])
+    dtypefp:str = sys.argv[4]
+    if dtypefp=='float32':
+        npfloat = np.float32
+    else:
+        npfloat = np.float64
 
     print(f"Reading {path}.hdr file...")
     with open(path + ".hdr", 'r') as f:
@@ -186,11 +192,11 @@ if __name__ == '__main__':
         # Store the data in a list
         cup_vec = [float(i) for i in float_data]
 
-    cup = np.asarray(cup_vec, dtype=np.float32).reshape(bands, samples*lines)
+    cup = np.asarray(cup_vec, dtype=npfloat).reshape(bands, samples*lines)
     print("Done.")
     print("Starting VCA algorithm...")
     start = time.time()
-    Ae, indice, Yp = vca(cup, target, verbose=True, snr_input=1)
+    Ae, indices, Yp = vca(cup, target, verbose=True, snr_input=snr, dtype=npfloat)
     end = time.time()
     print(f"VCA took {end-start}s")
 

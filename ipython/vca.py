@@ -12,14 +12,14 @@ import dpctl
 # Internal functions
 #############################################
 
-def pinv(A: np.ndarray) -> np.ndarray:
-    rcond = np.asarray(1.1920929e-07, dtype=np.float32)
+def pinv(A: np.ndarray, dtype) -> np.ndarray:
+    rcond = np.asarray(1.1920929e-07, dtype=dtype)
     u, s, vt = np.linalg.svd(A, full_matrices=False)
 
     # discard small singular values
     cutoff = rcond[..., np.newaxis] * np.amax(s, axis=-1)
     large = s > cutoff
-    s = np.divide(1, s, where=large, out=s, dtype=np.float32)
+    s = np.divide(1, s, where=large, out=s, dtype=dtype)
     s = np.where(large, s, 0)
 
     res = np.matmul(vt.T, np.multiply(s[..., np.newaxis], u.T))
@@ -37,7 +37,7 @@ def estimate_snr(Y: np.ndarray, r_m: np.ndarray, x: np.ndarray) -> float:
 
 
 
-def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0, dtype=np.float32) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     # Vertex Component Analysis
     #
     # Ae, indice, Yp = vca(Y,R,verbose = True,snr_input = 0)
@@ -93,7 +93,7 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
         y_m = np.mean(Y, axis=1)
         Y_o = (Y.T - y_m).transpose()           # data with zero-mean
         #splin.lapack.dgesvd
-        Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=np.float32))[0][:,:R]  # computes the R-projection matrix 
+        Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=dtype))[0][:,:R]  # computes the R-projection matrix 
         x_p = np.matmul(Ud.T, Y_o)                 # project the zero-mean data onto p-subspace
 
         SNR = estimate_snr(Y, y_m, x_p)
@@ -123,20 +123,20 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
             y_m = np.mean(Y, axis=1)
             Y_o = (Y.T - y_m).transpose()  # data with zero-mean 
                 
-            Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=np.float32))[0][:,:d]  # computes the p-projection matrix 
+            Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=dtype))[0][:,:d]  # computes the p-projection matrix 
             x_p =  np.matmul(Ud.T, Y_o)                 # project the zeros mean data onto p-subspace
 
             Yp =  (np.matmul(Ud, x_p[:d,:]).transpose() + y_m).transpose()     # again in dimension L
                     
             x = x_p[:d,:] #  x_p =  Ud.T * Y_o is on a R-dim subspace
-            c = math.sqrt(np.amax(np.sum(np.square(x), axis=1, dtype=np.float32)))
-            y = np.vstack(( x, c * np.ones((1, N), dtype=np.float32)))
+            c = math.sqrt(np.amax(np.sum(np.square(x), axis=1, dtype=dtype)))
+            y = np.vstack(( x, c * np.ones((1, N), dtype=dtype)))
     else:
         if verbose:
             print("... Select the projective proj.")
                 
         d = R
-        Ud  = np.linalg.svd(np.divide(np.matmul(Y, Y.T), N, dtype=np.float32))[0][:,:d] # computes the p-projection matrix 
+        Ud  = np.linalg.svd(np.divide(np.matmul(Y, Y.T), N, dtype=dtype))[0][:,:d] # computes the p-projection matrix 
         x_p = np.matmul(Ud.T, Y)[:d,:]
         Yp = np.matmul(Ud, x_p)      # again in dimension L (note that x_p has no null mean)
         x = np.matmul(Ud.T, Y)
@@ -149,13 +149,13 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
     #############################################
 
     indices = np.zeros((R), dtype=int)
-    A = np.zeros((R, R), dtype=np.float32)
+    A = np.zeros((R, R), dtype=dtype)
     A[-1,0] = 1
 
     for i in range(R):
-        w = np.random.rand(R, 1).astype(np.float32)
-        f = w - np.matmul(np.matmul(A, pinv(A)), w)
-        f = np.divide(f, np.linalg.norm(f), dtype=np.float32)
+        w = np.random.rand(R, 1).astype(dtype)
+        f = w - np.matmul(np.matmul(A, pinv(A, dtype)), w)
+        f = np.divide(f, np.linalg.norm(f), dtype=dtype)
 
         v = np.matmul(f.T, y)
 
@@ -168,14 +168,20 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0) -> Tup
 
 
 if __name__ == '__main__':
-    if not len(sys.argv) == 3:
-        sys.exit("Not parameters were found: python vca.py <path to image file, e.g.: Cuprite> <target endmembers, e.g.: 19>")
+    if not len(sys.argv) == 5:
+        sys.exit("Not parameters were found: python vca.py <path to image file, e.g.: Cuprite> <target endmembers, e.g.: 19> <SNR, e.g.: 0> <float32/64>")
 
     path:str = sys.argv[1]
     samples:int = 0
     lines:int = 0
     bands:int = 0
     target:int = int(sys.argv[2])
+    snr:float = float(sys.argv[3])
+    dtypefp:str = sys.argv[4]
+    if dtypefp=='float32':
+        npfloat = np.float32
+    else:
+        npfloat = np.float64
 
     print(f"Reading {path}.hdr file...")
     with open(path + ".hdr", 'r') as f:
@@ -197,13 +203,13 @@ if __name__ == '__main__':
         # Store the data in a list
         cup_vec = [float(i) for i in float_data]
 
-    cup = np.asarray(cup_vec, dtype=np.float32).reshape(bands, samples*lines)
+    cup = np.asarray(cup_vec, dtype=npfloat).reshape(bands, samples*lines)
     print("Done.")
     d = dpctl.select_default_device()
     d.print_device_info()
     print("Starting VCA algorithm...")
     start = time.time()
-    Ae, indices, Yp = vca(cup, target, verbose=True, snr_input=1)
+    Ae, indices, Yp = vca(cup, target, verbose=True, snr_input=snr, dtype=npfloat)
     end = time.time()
     print(f"VCA took {end-start}s")
 

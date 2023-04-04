@@ -39,7 +39,7 @@ $ deactivate
 In the case you want to launch Intel Python benchmarks, you can select which device by using the variable "SYCL_DEVICE_FILTER" ([more info](https://intel.github.io/llvm-docs/EnvironmentVariables.html#sycl_device_filter)). For example:
 
 ```bash
-$ SYCL_DEVICE_FILTER=gpu python3 ipython/vca.py data/Cuprite 19
+$ SYCL_DEVICE_FILTER=gpu python3 ipython/vca.py data/Cuprite 19 0 float32
 ```
 
 ### 3.2 SYCL
