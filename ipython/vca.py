@@ -125,11 +125,11 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0, dtype=
             Ud  = np.linalg.svd(np.divide(np.matmul(Y_o, Y_o.T), N, dtype=dtype))[0][:,:d]  # computes the p-projection matrix 
             x_p =  np.matmul(Ud.T, Y_o)                 # project the zeros mean data onto p-subspace
 
-            Yp =  (np.matmul(Ud, x_p[:d,:]).transpose() + y_m).transpose()     # again in dimension L
-                    
-            x = x_p[:d,:] #  x_p =  Ud.T * Y_o is on a R-dim subspace
-            c = math.sqrt(np.amax(np.sum(np.square(x), axis=1, dtype=dtype)))
-            y = np.vstack(( x, c * np.ones((1, N), dtype=dtype)))
+        Yp =  (np.matmul(Ud, x_p[:d,:]).transpose() + y_m).transpose()     # again in dimension L
+                
+        x = x_p[:d,:] #  x_p =  Ud.T * Y_o is on a R-dim subspace
+        c = math.sqrt(np.amax(np.sum(np.square(x), axis=1, dtype=dtype)))
+        y = np.vstack(( x, c * np.ones((1, N), dtype=dtype)))
     else:
         if verbose:
             print("... Select the projective proj.")
