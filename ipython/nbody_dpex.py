@@ -3,6 +3,7 @@ import dpctl
 import dpnp as np
 import time
 import numba_dpex as dpex
+from numba import float32, vectorize
 
 @dpex.kernel
 def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
@@ -32,16 +33,20 @@ def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
     vely[i] = dt*ay
     velz[i] = dt*az
    
-	
-def integrate( x, y, z, velx, vely, velz, dt ):
-    x = x + velx*dt
-    y = y + vely*dt
-    z = z + velz*dt
+
+@dpex.kernel
+def integrate( x, y, z, velx, vely, velz, dt):
+    i = dpex.get_global_id(0)
+
+    x[i] += velx[i]*dt
+    y[i] += vely[i]*dt
+    z[i] += velz[i]*dt
 	
 	
 def solutionPos( x, y, z ):
     pos_global = np.sum(np.sqrt(x*x+y*y+z*z))	
     return(pos_global)
+
 
 def main(argv):
     if len(argv)==3:
@@ -76,8 +81,8 @@ def main(argv):
     t0 = time.time()
     for iter in range(iters):
         # calculate gravitational accelerations
-        bodyForce[(N), dpex.DEFAULT_LOCAL_SIZE]( mass, posx, posy, posz, velx, vely, velz, G, dt, softSqred)
-        integrate(posx, posy, posz, velx, vely, velz, dt)
+        bodyForce[N, dpex.DEFAULT_LOCAL_SIZE]( mass, posx, posy, posz, velx, vely, velz, G, dt, softSqred)
+        integrate[N, dpex.DEFAULT_LOCAL_SIZE](posx, posy, posz, velx, vely, velz, dt)
     
     t1 = time.time()
     totalTime = t1-t0

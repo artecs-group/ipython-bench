@@ -22,7 +22,7 @@ def pi_kernel(x, y, partial_hits):
 
     for i in range(16):
         z = x[16*gidx+i]*x[16*gidx+i]+y[16*gidx+i]*y[16*gidx+i]
-        if (z <=1.0):
+        if (z <= 1.0):
             local_hits[lidx] += 1
 
     # Loop for computing local_sums : divide workgroup into 2 parts
