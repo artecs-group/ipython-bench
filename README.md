@@ -9,7 +9,7 @@ To run the code, you will need to install the following dependencies beforehand:
 - \>= CMake 3.13
 - \>= Make 4.2
 - \>= Python 3.6 (but only tested over 3.10), as well as, had installed numpy.
-- \>= [Intel oneAPI Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html) 2023.0, which contains the Intel C++ compiler and the oneMKL library.
+- \>= [Intel oneAPI Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html) 2023.1, which contains the Intel C++ compiler and the oneMKL library.
 - \>= [Intel AI Analytics Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/ai-analytics-toolkit-download.html) 2023.1, which contains the Intel Python.
 
 ## 2. Setting up
