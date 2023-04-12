@@ -6,7 +6,7 @@ import numba_dpex as dpex
 from numba import float32, vectorize
 
 @dpex.kernel
-def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
+def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared):
 
     i = dpex.get_global_id(0)
     
@@ -17,11 +17,11 @@ def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
         dy = y[i] - y[j]
         dz = z[i] - z[j]
                 
-        distSqr = (dx*dx + dy*dy + dz*dz + softeningSquared)
+        distSqr = (dx*dx + dy*dy + dz*dz + softeningSquared[0])
         invDist = 1/distSqr
         invDist3 = invDist * invDist * invDist
         
-        g_mass = G * mass[j]
+        g_mass = G[0] * mass[j]
         if i==j:
             g_mass = 0 # To invalidate itself
     
@@ -29,18 +29,18 @@ def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared ):
         ay = ay + g_mass * dy * invDist3
         az = az + g_mass * dz * invDist3
 
-    velx[i] = dt*ax
-    vely[i] = dt*ay
-    velz[i] = dt*az
+    velx[i] = dt[0]*ax
+    vely[i] = dt[0]*ay
+    velz[i] = dt[0]*az
    
 
 @dpex.kernel
 def integrate( x, y, z, velx, vely, velz, dt):
     i = dpex.get_global_id(0)
 
-    x[i] += velx[i]*dt
-    y[i] += vely[i]*dt
-    z[i] += velz[i]*dt
+    x[i] += velx[i]*dt[0]
+    y[i] += vely[i]*dt[0]
+    z[i] += velz[i]*dt[0]
 	
 	
 def solutionPos( x, y, z ):
@@ -66,17 +66,17 @@ def main(argv):
     d.print_device_info()
 
     np.random.seed(17)                            # set the random number generator seed
-    softSqred = npfloat(0.001)                    # softening length
-    G         = npfloat(6.674e-11)                # Newton's Gravitational Constant
-    mass  = 20*np.ones(N, dtype=npfloat)/N        # total mass of particles is 20
-    posx  = np.random.randn(N).astype(npfloat)    # randomly selected positions and velocities
-    posy  = np.random.randn(N).astype(npfloat)
-    posz  = np.random.randn(N).astype(npfloat)
-    velx  = np.zeros(N, dtype=npfloat)
-    vely  = np.zeros(N, dtype=npfloat)
-    velz  = np.zeros(N, dtype=npfloat)
+    softSqred = np.full(1, 0.001, dtype=npfloat)  # softening length
+    G         = np.full(1, 6.674e-11, dtype=npfloat) # Newton's Gravitational Constant
+    mass  = np.random.uniform(0, 20/N, N).astype(npfloat)   # total mass of particles is 20
+    posx  = np.random.uniform(-1, 1, N).astype(npfloat)   # randomly selected positions and velocities
+    posy  = np.random.uniform(-1, 1, N).astype(npfloat)
+    posz  = np.random.uniform(-1, 1, N).astype(npfloat)
+    velx  = np.random.uniform(-1, 1, N).astype(npfloat)
+    vely  = np.random.uniform(-1, 1, N).astype(npfloat)
+    velz  = np.random.uniform(-1, 1, N).astype(npfloat)
 
-    dt = npfloat(0.1)
+    dt = np.full(1, 0.1, dtype=npfloat)
 
     t0 = time.time()
     for iter in range(iters):
