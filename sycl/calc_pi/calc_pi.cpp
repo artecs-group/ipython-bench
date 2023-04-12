@@ -43,7 +43,7 @@ int main(int argc, char**argv) {
 	// Init x & y with random uniform
 	oneapi::mkl::rng::generate(distribution, engine, N, buff_x);
 	oneapi::mkl::rng::generate(distribution, engine, N, buff_y);
-        q.wait_and_throw();
+    q.wait_and_throw();
 
 	int work_group_size = q.get_device().get_info<info::device::max_work_group_size>();
 	int num_work_items = N / 16;

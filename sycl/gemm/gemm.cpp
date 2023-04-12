@@ -7,7 +7,7 @@ using namespace cl::sycl;
 
 float rand_uniform()
 {
-    return float(rand()) / RAND_MAX;
+    return float(rand()) / static_cast<float>(RAND_MAX);
 }
 
 bool verify_result(int m, int n, int k, int ldc, float *C, float *C_reference)
