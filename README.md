@@ -36,10 +36,10 @@ $ deactivate
 
 ## 3. Running
 ### 3.1 Intel Python
-In the case you want to launch Intel Python benchmarks, you can select which device by using the variable "SYCL_DEVICE_FILTER" ([more info](https://intel.github.io/llvm-docs/EnvironmentVariables.html#sycl_device_filter)). For example:
+In the case you want to launch Intel Python benchmarks, you can select which device by using the variable "ONEAPI_DEVICE_SELECTOR" ([more info](https://github.com/intel/llvm/blob/sycl/sycl/doc/EnvironmentVariables.md#oneapi_device_selector)). For example:
 
 ```bash
-$ SYCL_DEVICE_FILTER=gpu python3 ipython/vca.py data/Cuprite 19 0 float32
+$ ONEAPI_DEVICE_SELECTOR=gpu python3 ipython/vca.py data/Cuprite 19 0 float32
 ```
 
 ### 3.2 SYCL
@@ -51,5 +51,5 @@ $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-$ SYCL_DEVICE_FILTER=cpu vca/vca.exe ../../data/Cuprite 19 1
+$ ONEAPI_DEVICE_SELECTOR=cpu vca/vca.exe ../../data/Cuprite 19 1
 ```
