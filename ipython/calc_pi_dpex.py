@@ -10,11 +10,13 @@ import dpctl
 @dpex.kernel
 def pi_kernel(x, y, partial_hits):
     gidx = dpex.get_global_id(0)
-    lidx = dpex.get_local_id(0);
+    lidx = dpex.get_local_id(0)
     gridx = dpex.get_group_id(0)
     group_size = dpex.get_local_size(0)
     
-    local_hits = dpex.local.array(256, int32)
+    # There is an issue where the local memory should manual fixed: https://github.com/IntelPython/numba-dpex/issues/829
+    # instead of fixing it, it should use group_size
+    local_hits = dpex.local.array(8192, int32)
 
     local_hits[lidx] = 0
 
@@ -42,11 +44,12 @@ def pi_kernel(x, y, partial_hits):
 
 
 
-def calc_pi(x,y):
-    ls = 256
-    gs = len(x)//16
+def calc_pi(x, y):
+    ls = dpctl.select_default_device().max_work_group_size
+    print(f"max_work_group_size = {ls}")
+    gs = len(x) // 16
     nb_work_groups = gs // ls
-    print("ngroups={}".format(nb_work_groups))
+    print("ngroups = {}".format(nb_work_groups))
     
     partial_hits = np.zeros(nb_work_groups, dtype=np.int32)
     pi_kernel[gs, ls](x, y, partial_hits)
@@ -73,7 +76,7 @@ def main(argv):
             npfloat = np.float64
     else: 
         sys.exit("Not parameters were found: python calc_pi.py <N> <float32/64>")
-                
+    
     d = dpctl.select_default_device()
     d.print_device_info()
 
@@ -84,7 +87,7 @@ def main(argv):
     t1 = time.perf_counter()
     my_pi = calc_pi(x, y)
     t2 = time.perf_counter()
-    print("N={}  pi={}".format(N, my_pi))
+    print("N = {}  pi = {}".format(N, my_pi))
     print("calc_pi took {} s.".format(t2-t1))
 
 
