@@ -3,35 +3,42 @@ import dpctl
 import dpnp as np
 import time
 import numba_dpex as dpex
-from numba import float32, vectorize
 
 @dpex.kernel
 def bodyForce( mass, x, y, z, velx, vely, velz, G, dt, softeningSquared):
 
     i = dpex.get_global_id(0)
-    
-    ax = 0; ay = 0; az = 0
+    # BUG: local variables does not work writing more than once on them, the temporal fix is using private.array
+    # https://github.com/IntelPython/numba-dpex/issues/829
+    a = dpex.private.array(shape=3, dtype=np.float32)
+    d = dpex.private.array(shape=3, dtype=np.float32)
+    dist = dpex.private.array(shape=1, dtype=np.float32)
+    g_mass = dpex.private.array(shape=1, dtype=np.float32)
+    a[0] = 0.0
+    a[1] = 0.0
+    a[2] = 0.0
 
     for j in range(len(x)):
-        dx = x[i] - x[j]
-        dy = y[i] - y[j]
-        dz = z[i] - z[j]
-                
-        distSqr = (dx*dx + dy*dy + dz*dz + softeningSquared[0])
-        invDist = 1/distSqr
-        invDist3 = invDist * invDist * invDist
-        
-        g_mass = G[0] * mass[j]
-        if i==j:
-            g_mass = 0 # To invalidate itself
-    
-        ax = ax + g_mass * dx * invDist3
-        ay = ay + g_mass * dy * invDist3
-        az = az + g_mass * dz * invDist3
+        d[0] = x[i] - x[j]
+        d[1] = y[i] - y[j]
+        d[2] = z[i] - z[j]
 
-    velx[i] = dt[0]*ax
-    vely[i] = dt[0]*ay
-    velz[i] = dt[0]*az
+        dist[0] = (d[0]*d[0] + d[1]*d[1] + d[2]*d[2] + softeningSquared[0])
+        dist[0] = 1/dist[0]
+        dist[0] = dist[0] * dist[0] * dist[0]
+
+        g_mass[0] = G[0] * mass[j]
+        if i==j:
+            g_mass[0] = 0.0 # To invalidate itself
+
+        a[0] += g_mass[0] * d[0] * dist[0]
+        a[1] += g_mass[0] * d[1] * dist[0]
+        a[2] += g_mass[0] * d[2] * dist[0]
+
+    velx[i] = dt[0]*a[0]
+    vely[i] = dt[0]*a[1]
+    velz[i] = dt[0]*a[2]
+
    
 
 @dpex.kernel
