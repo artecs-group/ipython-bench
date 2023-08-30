@@ -1,7 +1,14 @@
-# ipython-bench
+# iPython-bench
 <img alt="license" src="https://img.shields.io/github/license/mashape/apistatus.svg"/>
 
-Benchmarking comparison of native Python, Intel Python and SYCL
+iPython-bench is a set of benchmarks of Intel's Python and its extensions such as dpctl, dpnp or numba-dpex included in the oneAPI toolkit. This repository also includes versions for native Python and SYCL. The benchmarks include:
+
+* **Gemm**: a matrix-matrix multiplication.
+* **Calc_pi**: a Monte Carlo method for PI calculation.
+* **Nbody**: simulates the interactions between a large number of particles, such as stars or planets, in a gravitational field.
+* **VCA**: Vertex Component Analysis (VCA) is a signal processing technique used for hyperspectral unmixing, which refers to the process of decomposing a mixed spectrum into its constituent spectral signatures.
+
+For more information, [read the article we write](#publications).
 
 ## 1. Requirements
 To run the code, you will need to install the following dependencies beforehand:
@@ -53,3 +60,10 @@ $ cmake ..
 $ make
 $ ONEAPI_DEVICE_SELECTOR=cpu vca/vca.exe ../../data/Cuprite 19 1
 ```
+
+## Publications
+* Faqir-Rhazoui, Y., García, C. (2023). Exploring Heterogeneous Computing Environments: A Preliminary Analysis of Python and SYCL Performance. In: Naiouf, M., Rucci, E., Chichizola, F., De Giusti, L. (eds) Cloud Computing, Big Data & Emerging Topics. JCC-BD&ET 2023. Communications in Computer and Information Science, vol 1828. Springer, Cham.
+   * DOI: [https://doi.org/10.1007/978-3-031-40942-4_1](https://doi.org/10.1007/978-3-031-40942-4_1)
+
+## Acknowledgements
+This paper has been supported by the EU (FEDER), the Spanish MINECO and CM under grants S2018/TCS-4423, PID2021-126576NB-I00 funded by MCIN/AEI/10.13039/501100011033 and by “ERDF A way of making Europe”.
