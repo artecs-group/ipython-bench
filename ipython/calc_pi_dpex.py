@@ -29,7 +29,7 @@ def pi_kernel(x, y, partial_hits):
     stride = group_size // 2
     while stride > 0:
         # Waiting for each 2x2 addition into given workgroup
-        dpex.barrier(dpex.CLK_LOCAL_MEM_FENCE)
+        dpex.barrier(dpex.LOCAL_MEM_FENCE)
 
         # Add elements 2 by 2 between lidx and lidx + stride
         if lidx < stride:
@@ -47,6 +47,7 @@ def pi_kernel(x, y, partial_hits):
 def calc_pi(x, y):
     ls = dpctl.select_default_device().max_work_group_size
     print(f"max_work_group_size = {ls}")
+
     gs = len(x) // 16
     nb_work_groups = gs // ls
     print("ngroups = {}".format(nb_work_groups))
@@ -89,7 +90,6 @@ def main(argv):
     t2 = time.perf_counter()
     print("N = {}  pi = {}".format(N, my_pi))
     print("calc_pi took {} s.".format(t2-t1))
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])
