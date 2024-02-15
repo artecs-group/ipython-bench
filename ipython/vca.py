@@ -212,12 +212,12 @@ if __name__ == '__main__':
     end = time.time()
     print(f"VCA took {end-start}s")
 
-    print("Writing results...")
-    with open('data/End-Cupriteb_python-02.txt', 'w') as f:
-        for i in range(target):
-            f.write(f"==={i}")
-            for j in range(bands):
-                f.write(f"{Ae[j, i]}")
+    # print("Writing results...")
+    # with open('data/End-Cupriteb_python-02.txt', 'w') as f:
+    #     for i in range(target):
+    #         f.write(f"==={i}")
+    #         for j in range(bands):
+    #             f.write(f"{Ae[j, i]}")
     
     # with open('data/python_endmem.bin', 'wb') as f:
     #     f.write(Ae.tobytes())
