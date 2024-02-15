@@ -3,29 +3,10 @@ import sys
 import struct
 import time
 import math
-from typing import Tuple
 import dpnp as np
 import dpctl
 
-#############################################
-# Internal functions
-#############################################
-
-def pinv(A: np.ndarray, dtype) -> np.ndarray:
-    rcond = np.asarray(1.1920929e-07, dtype=dtype)
-    u, s, vt = np.linalg.svd(A, full_matrices=False)
-
-    # discard small singular values
-    cutoff = rcond[..., np.newaxis] * np.amax(s, axis=-1)
-    large = s > cutoff
-    s = np.divide(1, s, where=large, out=s, dtype=dtype)
-    s = np.where(large, s, 0)
-
-    res = np.matmul(vt.T, np.multiply(s[..., np.newaxis], u.T))
-    return res
-
-
-def estimate_snr(Y: np.ndarray, r_m: np.ndarray, x: np.ndarray) -> float:
+def estimate_snr(Y, r_m, x):
     [L, N] = Y.shape           # L number of bands (channels), N number of pixels
     [p, N] = x.shape           # p number of endmembers (reduced dimension)
 
@@ -36,7 +17,7 @@ def estimate_snr(Y: np.ndarray, r_m: np.ndarray, x: np.ndarray) -> float:
 
 
 
-def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0, dtype=np.float32) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def vca(Y, R, verbose = False, snr_input = 0, dtype=np.float32):
     # Vertex Component Analysis
     #
     # Ae, indice, Yp = vca(Y,R,verbose = True,snr_input = 0)
@@ -153,7 +134,7 @@ def vca(Y: np.ndarray, R: int, verbose: bool = False, snr_input: int = 0, dtype=
 
     for i in range(R):
         w = np.random.rand(R, 1).astype(dtype)
-        f = w - np.matmul(np.matmul(A, pinv(A, dtype)), w)
+        f = w - np.matmul(np.matmul(A, np.linalg.pinv(A)), w)
         f = np.divide(f, np.linalg.norm(f), dtype=dtype)
 
         v = np.matmul(f.T, y)
