@@ -53,7 +53,7 @@ def calc_pi(x, y):
     print("ngroups = {}".format(nb_work_groups))
     
     partial_hits = np.zeros(nb_work_groups, dtype=np.int32)
-    pi_kernel[gs, ls](x, y, partial_hits)
+    pi_kernel[dpex.NdRange(gs, ls)](x, y, partial_hits)
     
     hits = 0
     # calculate the final hits in host
