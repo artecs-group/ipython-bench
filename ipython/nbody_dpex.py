@@ -88,8 +88,8 @@ def main(argv):
     t0 = time.time()
     for iter in range(iters):
         # calculate gravitational accelerations
-        bodyForce[dpex.NdRange(N, dpex.DEFAULT_LOCAL_SIZE)]( mass, posx, posy, posz, velx, vely, velz, G, dt, softSqred)
-        integrate[dpex.NdRange(N, dpex.DEFAULT_LOCAL_SIZE)](posx, posy, posz, velx, vely, velz, dt)
+        bodyForce[dpex.Range(N)]( mass, posx, posy, posz, velx, vely, velz, G, dt, softSqred)
+        integrate[dpex.Range(N)](posx, posy, posz, velx, vely, velz, dt)
     
     t1 = time.time()
     totalTime = t1-t0
